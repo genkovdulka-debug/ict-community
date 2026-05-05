@@ -411,7 +411,12 @@ export default function App() {
     const token = localStorage.getItem("ict_token");
     const username = localStorage.getItem("ict_user");
     const role = localStorage.getItem("ict_role");
-    if (token && username) { setCurrentUser(username); setCurrentRole(role || "user"); setScreen("feed"); }
+    if (token && username) { 
+      setCurrentUser(username); 
+      setCurrentRole(role || "user"); 
+      setCurrentUserId(parseInt(localStorage.getItem("userId")));
+      setScreen("feed"); 
+    }
   }, []);
 
   function notify(msg) { setNotif(msg); setTimeout(() => setNotif(""), 2500); }
@@ -536,7 +541,9 @@ export default function App() {
     setLoading(true);
     const data = await apiGetUser(username);
     if (data.error) { notify(data.error); setLoading(false); return; }
-    setProfileData(data); setScreen("profile"); setLoading(false);
+    setProfileData(data);
+    console.log("Profile data:", data);
+    setScreen("profile"); setLoading(false);
   }
 
   const isAdmin = currentRole === "admin";
@@ -624,7 +631,7 @@ export default function App() {
               <textarea style={{ ...s.input, height: 72, resize: "vertical" }} placeholder="What's on your mind? (optional)" value={newBody} onChange={e => setNewBody(e.target.value)} />
               {!mediaPreview ? (
                 <div onClick={() => fileInputRef.current.click()} style={{ border: "1px dashed #2a2e38", borderRadius: 8, padding: "16px", textAlign: "center", cursor: "pointer", marginBottom: 8, color: "#8b90a0", fontSize: 13 }} onMouseEnter={e => e.currentTarget.style.borderColor = "#1a6fd4"} onMouseLeave={e => e.currentTarget.style.borderColor = "#2a2e38"}>
-                  📷 Click to add a photo or video (optional)
+                  📷 Click to add a photo or video (No Nudes)
                   <input ref={fileInputRef} type="file" accept="image/*,video/*" style={{ display: "none" }} onChange={handleFileChange} />
                 </div>
               ) : (
@@ -721,11 +728,14 @@ export default function App() {
                     {profileData.username === currentUser && <span style={{ fontSize: 11, background: "#042C53", color: "#85B7EB", padding: "2px 8px", borderRadius: 20, fontWeight: 400 }}>you</span>}
                     {profileData.role === "admin" && <span style={{ fontSize: 11, background: "#1a6fd4", color: "#fff", padding: "2px 8px", borderRadius: 20, fontWeight: 400 }}>admin</span>}
                     {profileData.banned && <span style={{ fontSize: 11, background: "#3D0000", color: "#FF6B6B", padding: "2px 8px", borderRadius: 20, fontWeight: 400 }}>banned</span>}
-                    
-                 {profileData.username !== currentUser && currentUserId && ( <FriendButton   targetUserId={profileData.id} notify={notify}  onMessage={(user) => { setMessageUser(user); setScreen("messages"); }}  />)}
-                  
                   </div>
-                  
+                  {profileData.username !== currentUser && currentUserId && (
+                    <FriendButton
+                      targetUserId={profileData.id}
+                      notify={notify}
+                      onMessage={(user) => { setMessageUser(user); setScreen("messages"); }}
+                    />
+                  )}
                   <div style={{ fontSize: 12, color: "#8b90a0", marginTop: 2 }}>Member since {new Date(profileData.joined_at).toLocaleDateString()}</div>
                   <div style={{ fontSize: 13, color: "#8b90a0", marginTop: 4 }}>{profileData.bio}</div>
                 </div>
