@@ -80,35 +80,35 @@ export async function apiAdminDeleteUser(id) {
 }
 // ── FRIENDS ──
 export const apiSendFriendRequest = (id) =>
-  fetch(`${BASE_URL}/friends/request/${id}`, { method: "POST", headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }).then(r => r.json());
+  fetch(`${BASE_URL}/friends/request/${id}`, { method: "POST", headers: { Authorization: `Bearer ${localStorage.getItem("ict_token")}` } }).then(r => r.json());
 
 export const apiAcceptFriend = (id) =>
-  fetch(`${BASE_URL}/friends/accept/${id}`, { method: "PUT", headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }).then(r => r.json());
+  fetch(`${BASE_URL}/friends/accept/${id}`, { method: "PUT", headers: { Authorization: `Bearer ${localStorage.getItem("ict_token")}` } }).then(r => r.json());
 
 export const apiDeclineFriend = (id) =>
-  fetch(`${BASE_URL}/friends/decline/${id}`, { method: "PUT", headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }).then(r => r.json());
+  fetch(`${BASE_URL}/friends/decline/${id}`, { method: "PUT", headers: { Authorization: `Bearer ${localStorage.getItem("ict_token")}` } }).then(r => r.json());
 
 export const apiUnfriend = (id) =>
-  fetch(`${BASE_URL}/friends/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }).then(r => r.json());
+  fetch(`${BASE_URL}/friends/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${localStorage.getItem("ict_token")}` } }).then(r => r.json());
 
 export const apiGetFriends = () =>
-  fetch(`${BASE_URL}/friends/list`, { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }).then(r => r.json());
+  fetch(`${BASE_URL}/friends/list`, { headers: { Authorization: `Bearer ${localStorage.getItem("ict_token")}` } }).then(r => r.json());
 
 export const apiGetFriendRequests = () =>
-  fetch(`${BASE_URL}/friends/requests`, { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }).then(r => r.json());
+  fetch(`${BASE_URL}/friends/requests`, { headers: { Authorization: `Bearer ${localStorage.getItem("ict_token")}` } }).then(r => r.json());
 
 export const apiGetFriendStatus = (id) =>
-  fetch(`${BASE_URL}/friends/status/${id}`, { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }).then(r => r.json());
+  fetch(`${BASE_URL}/friends/status/${id}`, { headers: { Authorization: `Bearer ${localStorage.getItem("ict_token")}` } }).then(r => r.json());
 
 // ── MESSAGES ──
 export const apiGetConversations = () =>
-  fetch(`${BASE_URL}/messages/`, { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }).then(r => r.json());
+  fetch(`${BASE_URL}/messages/`, { headers: { Authorization: `Bearer ${localStorage.getItem("ict_token")}` } }).then(r => r.json());
 
 export const apiGetMessages = (id) =>
-  fetch(`${BASE_URL}/messages/${id}`, { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }).then(r => r.json());
+  fetch(`${BASE_URL}/messages/${id}`, { headers: { Authorization: `Bearer ${localStorage.getItem("ict_token")}` } }).then(r => r.json());
 
 export const apiSendMessage = (id, body) =>
-  fetch(`${BASE_URL}/messages/${id}`, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("token")}` }, body: JSON.stringify({ body }) }).then(r => r.json());
+  fetch(`${BASE_URL}/messages/${id}`, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("ict_token")}` }, body: JSON.stringify({ body }) }).then(r => r.json());
 
 export const apiMarkRead = (id) =>
-  fetch(`${BASE_URL}/messages/read/${id}`, { method: "PUT", headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }).then(r => r.json());
+  fetch(`${BASE_URL}/messages/read/${id}`, { method: "PUT", headers: { Authorization: `Bearer ${localStorage.getItem("ict_token")}` } }).then(r => r.json());
