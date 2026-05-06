@@ -219,15 +219,22 @@ function MessagesScreen({ currentUserId, onBack }) {
   const [activeConv, setActiveConv] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
+  const [friends, setFriends] = useState([]);
+  const [showNewChat, setShowNewChat] = useState(false);
   const bottomRef = useRef(null);
 
-  useEffect(() => { loadConversations(); }, []);
+  useEffect(() => { loadConversations(); loadFriends(); }, []);
   useEffect(() => { if (activeConv) loadMessages(activeConv.id); }, [activeConv]);
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
   async function loadConversations() {
     const data = await apiGetConversations();
     if (Array.isArray(data)) setConversations(data);
+  }
+
+  async function loadFriends() {
+    const data = await apiGetFriends();
+    if (Array.isArray(data)) setFriends(data);
   }
 
   async function loadMessages(userId) {
@@ -244,14 +251,40 @@ function MessagesScreen({ currentUserId, onBack }) {
     loadConversations();
   }
 
+  function startChat(friend) {
+    setActiveConv(friend);
+    setShowNewChat(false);
+    loadMessages(friend.id);
+  }
+
   return (
     <div>
       <span style={{ fontSize: 13, color: "#8b90a0", cursor: "pointer", display: "block", marginBottom: 12 }} onClick={onBack}>← back to feed</span>
       <div style={{ display: "flex", gap: 12, height: 500 }}>
         {/* Conversations list */}
-        <div style={{ width: 200, background: "#1a1c20", borderRadius: 12, border: "0.5px solid #2a2e38", overflow: "auto" }}>
-          <div style={{ padding: "10px 12px", fontSize: 13, fontWeight: 600, borderBottom: "0.5px solid #2a2e38", color: "#e8eaf0" }}>Messages</div>
-          {conversations.length === 0 && <div style={{ padding: 12, fontSize: 12, color: "#8b90a0" }}>No conversations yet</div>}
+        <div style={{ width: 200, background: "#1a1c20", borderRadius: 12, border: "0.5px solid #2a2e38", overflow: "auto", display: "flex", flexDirection: "column" }}>
+          <div style={{ padding: "10px 12px", fontSize: 13, fontWeight: 600, borderBottom: "0.5px solid #2a2e38", color: "#e8eaf0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span>Messages</span>
+            <button onClick={() => setShowNewChat(!showNewChat)} style={{ background: "#0C447C", color: "#B5D4F4", border: "none", borderRadius: 6, padding: "2px 8px", cursor: "pointer", fontSize: 11 }}>+ New</button>
+          </div>
+
+          {/* New chat - friends list */}
+          {showNewChat && (
+            <div style={{ borderBottom: "0.5px solid #2a2e38" }}>
+              <div style={{ padding: "6px 12px", fontSize: 11, color: "#8b90a0" }}>Start chat with:</div>
+              {friends.length === 0 && <div style={{ padding: "6px 12px", fontSize: 11, color: "#8b90a0" }}>No friends yet</div>}
+              {friends.map(f => (
+                <div key={f.id} onClick={() => startChat(f)} style={{ padding: "8px 12px", cursor: "pointer", display: "flex", alignItems: "center", gap: 8, background: "#0d0e11" }}>
+                  <Avatar name={f.username} size={24} />
+                  <span style={{ fontSize: 12, color: "#e8eaf0" }}>{f.username}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {conversations.length === 0 && !showNewChat && (
+            <div style={{ padding: 12, fontSize: 12, color: "#8b90a0" }}>No conversations yet. Click + New to start!</div>
+          )}
           {conversations.map(c => (
             <div key={c.id} onClick={() => setActiveConv(c)} style={{ padding: "10px 12px", cursor: "pointer", background: activeConv?.id === c.id ? "#042C53" : "transparent", borderBottom: "0.5px solid #2a2e38" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -269,7 +302,7 @@ function MessagesScreen({ currentUserId, onBack }) {
         {/* Chat window */}
         <div style={{ flex: 1, background: "#1a1c20", borderRadius: 12, border: "0.5px solid #2a2e38", display: "flex", flexDirection: "column" }}>
           {!activeConv ? (
-            <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: "#8b90a0", fontSize: 13 }}>Select a conversation</div>
+            <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: "#8b90a0", fontSize: 13 }}>Select a conversation or click + New</div>
           ) : (
             <>
               <div style={{ padding: "10px 12px", borderBottom: "0.5px solid #2a2e38", fontSize: 13, fontWeight: 600, color: "#e8eaf0", display: "flex", alignItems: "center", gap: 8 }}>
@@ -277,6 +310,7 @@ function MessagesScreen({ currentUserId, onBack }) {
                 {activeConv.username}
               </div>
               <div style={{ flex: 1, overflow: "auto", padding: 12, display: "flex", flexDirection: "column", gap: 8 }}>
+                {messages.length === 0 && <div style={{ textAlign: "center", color: "#8b90a0", fontSize: 12, marginTop: 20 }}>No messages yet. Say hello! 👋</div>}
                 {messages.map((m, i) => (
                   <div key={i} style={{ display: "flex", justifyContent: m.sender_id === currentUserId ? "flex-end" : "flex-start" }}>
                     <div style={{ maxWidth: "70%", padding: "8px 12px", borderRadius: 12, fontSize: 12, background: m.sender_id === currentUserId ? "#042C53" : "#2a2e38", color: m.sender_id === currentUserId ? "#B5D4F4" : "#e8eaf0" }}>
