@@ -164,6 +164,137 @@ function AdminPanel({ onBack, notify }) {
   );
 }
 
+function CommentItem({ comment, allComments, currentUser, currentRole, postId, onReply, onDelete, onAdminDelete, openProfile, s, notify, isAdmin }) {
+  const [showReplyInput, setShowReplyInput] = useState(false);
+  const [replyText, setReplyText] = useState("");
+  const [showReplies, setShowReplies] = useState(true);
+
+  const replies = allComments?.filter(c => c.parent_id === comment.id) || [];
+  const isTopLevel = !comment.parent_id;
+
+  if (!isTopLevel) return null;
+
+  async function submitReply() {
+    if (!replyText.trim()) return;
+    await onReply(comment.id, comment.username, replyText);
+    setReplyText("");
+    setShowReplyInput(false);
+  }
+
+  return (
+    <div style={{ marginBottom: 12 }}>
+      {/* Main comment */}
+      <div style={{ display: "flex", gap: 8 }}>
+        <Avatar name={comment.username} size={28} />
+        <div style={{ flex: 1 }}>
+          <div style={{ background: "#1f2228", borderRadius: 10, padding: "8px 12px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+              <span
+                style={{ fontSize: 12, fontWeight: 600, color: "#378ADD", cursor: "pointer" }}
+                onClick={() => openProfile(comment.username)}
+              >
+                {comment.username}
+              </span>
+              <span style={{ fontSize: 11, color: "#8b90a0" }}>
+                {new Date(comment.created_at).toLocaleString()}
+              </span>
+            </div>
+            <div style={{ fontSize: 13, color: "#e8eaf0" }}>{comment.body}</div>
+          </div>
+
+          {/* Comment actions */}
+          <div style={{ display: "flex", gap: 12, marginTop: 4, paddingLeft: 4 }}>
+            {currentUser && (
+              <span
+                style={{ fontSize: 11, color: "#8b90a0", cursor: "pointer" }}
+                onClick={() => setShowReplyInput(!showReplyInput)}
+              >
+                💬 Reply
+              </span>
+            )}
+            {replies.length > 0 && (
+              <span
+                style={{ fontSize: 11, color: "#8b90a0", cursor: "pointer" }}
+                onClick={() => setShowReplies(!showReplies)}
+              >
+                {showReplies ? "▲ Hide" : `▼ ${replies.length} repl${replies.length === 1 ? "y" : "ies"}`}
+              </span>
+            )}
+            {(comment.username === currentUser || isAdmin) && (
+              <span
+                style={{ fontSize: 11, color: "#FF6B6B", cursor: "pointer" }}
+                onClick={() => isAdmin && comment.username !== currentUser ? onAdminDelete(comment.id) : onDelete(comment.id)}
+              >
+                🗑 Delete
+              </span>
+            )}
+          </div>
+
+          {/* Reply input */}
+          {showReplyInput && (
+            <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+              <Avatar name={currentUser} size={24} />
+              <div style={{ flex: 1 }}>
+                <textarea
+                  style={{ ...s.input, height: 50, resize: "none", marginBottom: 6, fontSize: 12 }}
+                  placeholder={`Reply to ${comment.username}...`}
+                  value={replyText}
+                  onChange={e => setReplyText(e.target.value)}
+                  autoFocus
+                />
+                <div style={{ display: "flex", gap: 6 }}>
+                  <button style={{ ...s.btnP, fontSize: 11, padding: "4px 12px" }} onClick={submitReply}>Reply</button>
+                  <button style={{ ...s.btnS, fontSize: 11, padding: "4px 12px" }} onClick={() => setShowReplyInput(false)}>Cancel</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Replies */}
+          {showReplies && replies.length > 0 && (
+            <div style={{ marginTop: 8, paddingLeft: 16, borderLeft: "2px solid #2a2e38" }}>
+              {replies.map(reply => (
+                <div key={reply.id} style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+                  <Avatar name={reply.username} size={24} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ background: "#1f2228", borderRadius: 10, padding: "6px 10px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                        <span
+                          style={{ fontSize: 12, fontWeight: 600, color: "#378ADD", cursor: "pointer" }}
+                          onClick={() => openProfile(reply.username)}
+                        >
+                          {reply.username}
+                        </span>
+                        {reply.reply_to && (
+                          <span style={{ fontSize: 11, color: "#8b90a0" }}>→ @{reply.reply_to}</span>
+                        )}
+                        <span style={{ fontSize: 11, color: "#8b90a0" }}>
+                          {new Date(reply.created_at).toLocaleString()}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: 12, color: "#e8eaf0" }}>{reply.body}</div>
+                    </div>
+                    {(reply.username === currentUser || isAdmin) && (
+                      <div style={{ marginTop: 4, paddingLeft: 4 }}>
+                        <span
+                          style={{ fontSize: 11, color: "#FF6B6B", cursor: "pointer" }}
+                          onClick={() => isAdmin && reply.username !== currentUser ? onAdminDelete(reply.id) : onDelete(reply.id)}
+                        >
+                          🗑 Delete
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function FriendButton({ targetUserId, notify, onMessage }) {
   const [status, setStatus] = useState("none");
   const [requesterId, setRequesterId] = useState(null);
@@ -723,18 +854,53 @@ export default function App() {
             {loading ? <Spinner /> : !currentPost.comments?.length
               ? <div style={{ color: "#8b90a0", fontSize: 13, textAlign: "center", padding: "2rem 0" }}>No comments yet.</div>
               : <div style={s.card}>
-                {currentPost.comments.map((c, i) => (
-                  <div key={c.id || i} style={{ paddingBottom: 10, marginBottom: 10, borderBottom: i < currentPost.comments.length - 1 ? "0.5px solid #2a2e38" : "none" }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                      <span style={{ fontSize: 12, color: "#8b90a0", cursor: "pointer" }} onClick={() => openProfile(c.author)}>{c.author} · {new Date(c.created_at).toLocaleDateString()}</span>
-                      <div style={{ display: "flex", gap: 6 }}>
-                        {currentUser === c.author && <span style={{ fontSize: 12, color: "#8b90a0", cursor: "pointer" }} onClick={() => deleteComment(c.id)}>🗑</span>}
-                        {isAdmin && currentUser !== c.author && <span style={{ fontSize: 11, background: "#3D0000", color: "#FF6B6B", padding: "1px 8px", borderRadius: 20, cursor: "pointer" }} onClick={() => adminDeleteComment(c.id)}>Delete</span>}
+                {/* COMMENTS */}
+                <div style={{ marginTop: 16 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "#8b90a0", marginBottom: 10 }}>
+                    💬 {currentPost.comments?.length || 0} Comments
+                  </div>
+
+                  {/* Comment input */}
+                  {currentUser && (
+                    <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+                      <Avatar name={currentUser} size={28} />
+                      <div style={{ flex: 1 }}>
+                        <textarea
+                          style={{ ...s.input, height: 60, resize: "none", marginBottom: 6 }}
+                          placeholder="Write a comment..."
+                          value={commentInput}
+                          onChange={e => setCommentInput(e.target.value)}
+                        />
+                        <button style={s.btnP} onClick={submitComment}>Comment</button>
                       </div>
                     </div>
-                    <div style={{ fontSize: 13, color: "#e8eaf0", lineHeight: 1.5, marginTop: 2 }}>{c.body}</div>
-                  </div>
-                ))}
+                  )}
+
+                  {/* Comments list */}
+                  {currentPost.comments?.map(comment => (
+                    <CommentItem
+                      key={comment.id}
+                      comment={comment}
+                      allComments={currentPost.comments}
+                      currentUser={currentUser}
+                      currentRole={currentRole}
+                      postId={currentPost.id}
+                      onReply={async (parentId, replyTo, body) => {
+                        await apiAddComment(currentPost.id, body, parentId, replyTo);
+                        notify("Reply posted!");
+                        const updated = await apiGetPost(currentPost.id);
+                        updated.myReactions = currentPost.myReactions;
+                        setCurrentPost(updated);
+                      }}
+                      onDelete={deleteComment}
+                      onAdminDelete={adminDeleteComment}
+                      openProfile={openProfile}
+                      s={s}
+                      notify={notify}
+                      isAdmin={isAdmin}
+                    />
+                  ))}
+                </div>
               </div>
             }
           </>

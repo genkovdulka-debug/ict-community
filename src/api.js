@@ -32,10 +32,12 @@ export async function apiDeletePost(id) {
   const res = await fetch(`${BASE_URL}/posts/${id}`, { method: "DELETE", headers: authHeaders() });
   return res.json();
 }
-export async function apiAddComment(post_id, body) {
-  const res = await fetch(`${BASE_URL}/comments`, { method: "POST", headers: authHeaders(), body: JSON.stringify({ post_id, body }) });
-  return res.json();
-}
+export const apiAddComment = (postId, body, parentId = null, replyTo = null) =>
+  fetch(`${BASE_URL}/comments`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("ict_token")}` },
+    body: JSON.stringify({ post_id: postId, body, parent_id: parentId, reply_to: replyTo })
+  }).then(r => r.json());
 export async function apiDeleteComment(id) {
   const res = await fetch(`${BASE_URL}/comments/${id}`, { method: "DELETE", headers: authHeaders() });
   return res.json();
